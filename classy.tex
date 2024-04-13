@@ -6,6 +6,10 @@
 \date{March 2024}
 
 \usepackage{amssymb}
+
+\usepackage{amsthm}
+\newtheorem{definition}{Definition}
+
 \usepackage{bussproofs}
 
 \newcommand{\ca}[2]{\langle #1, #2\rangle}
@@ -41,18 +45,18 @@
 \end{prooftree}
 
 \begin{prooftree}
+\AxiomC{$ \Gamma, t \colon A, u \colon B$}
+% \RightLabel{}
+\UnaryInfC{$\Gamma, \cs t u \colon A \vee B$}
+\end{prooftree}
+
+\begin{prooftree}
 % \def\fCenter{\mbox{\ $\Rightarrow$\ }}
 \def\fCenter{}
 \AxiomC{$ \Gamma, t \colon A$}
 \AxiomC{$ \Delta, u \colon B$}
 \RightLabel{}
 \BinaryInf$\fCenter \Gamma, \Delta, \ca t u \colon A \wedge B$
-\end{prooftree}
-
-\begin{prooftree}
-\AxiomC{$ \Gamma, t \colon A, u \colon B$}
-% \RightLabel{}
-\UnaryInfC{$\Gamma, \cs t u \colon A \vee B$}
 \end{prooftree}
 
 % \begin{prooftree}
@@ -77,20 +81,21 @@
 
 \newpage
 
-\[ \mathcal{C} ::= \epsilon \mid \mathcal{C}, t * u \]
+Programs:
+\[ \Pi ::= \epsilon \mid \Pi, t * u \]
 
-$*$ is commutative.
+Note: $*$ is commutative.
 
 \vspace{1em}
 
 \begin{tabular}{l l c l}
-   & $\mathcal{C},\ca {t_1} {t_2} * \cs {u_1} {u_2}$ & $\to_1$ & $\mathcal{C}, t_1*u_1, t_2*u_2$ \\
-   & $\mathcal{C}, x * t$ & $\to_2$ & $\mathcal{C}\{x \leftarrow t\}$ \\
-   % & $\mathcal{C}, +x * t$ & $ \to$ & $\mathcal{C}\{-x \leftarrow t\}$ \\
-   & $\mathcal{C},\contr{t_1, u_2} * u$ & $\to_3$ & $\mathcal{C}^\alpha, t_1*u, t_2*u^\alpha$ \\
+   & $\Pi,\ca {t_1} {t_2} * \cs {u_1} {u_2}$ & $\to_1$ & $\Pi, t_1*u_1, t_2*u_2$ \\
+   & $\Pi, x * t$ & $\to_2$ & $\Pi\{x \leftarrow t\}$ \\
+   % & $\Pi, +x * t$ & $ \to$ & $\Pi\{-x \leftarrow t\}$ \\
+   & $\Pi,\contr{t_1, u_2} * u$ & $\to_3$ & $\Pi^\alpha, t_1*u, t_2*u^\alpha$ \\
    % & $\Delta, \ee$ & $\to_5$ & $\Delta$ \\
-   & $\mathcal{C},\ca {t_1} {t_2} * \ee$ & $\to$ & $\mathcal{C}, t_1*\ee, t_2*\ee$ \\
-   & $\mathcal{C},\cs {t_1} {t_2} * \ee$ & $\to$ & $\mathcal{C}, t_1*\ee, t_2*\ee$ \\
+   & $\Pi,\ca {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
+   & $\Pi,\cs {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
 \end{tabular}
 
 \vspace{2em}
@@ -125,19 +130,30 @@ $E_x := \contr{t \mid (x \mapsto t) \in E}$
 
 \vspace{2em}
 
-Valid terms:
-\begin{itemize}
-    \item $\sigma \colon Var \to ? $
-    \item $scopes(t) = \{ \sigma(x) \mid x \mbox{ in } t \}$
-    \item If $t_1 * t_2$ and $u_1 * u_2$, then $vars(t_1) \cap vars(u_1)$ iff $vars(t_2) \cap vars(u_2)$
-    \item If $\ca{t}{u}$, then $scopes(t)$ disjoint $scopes(u)$
-\end{itemize}
+\begin{definition}[$\Pi$-path]
+    Let $\Pi$ be a program. A $\Pi$-path is given by:
+    \begin{itemize}
+        \item $n > 0$
+        \item a sequence of variables $x_0, \ldots, x_n$ in $\Pi$
+        \item terms $t_0 \circledast u_0, \ldots, t_n \circledast u_n$ in $\Pi$ (where $t \circledast u$ is either $\ca t u$ or $t * u$)
+        \item such that $x_i \in t_i$ and $x_{i+1}\in u_i$ for $i=0\ldots n-1$.
+    \end{itemize}
+\end{definition}
+
+\begin{definition}
+    A program $\Pi$ is valid if
+    \begin{itemize}
+        \item All subterms are unique, except variables: each variable occurs exactly twice.
+        \item There are no cyclic $\Pi$-paths (cyclic meaning a $\Pi$-path $x_0, \ldots, x_n$ such that $x_0 = x_n$).
+    \end{itemize}
+\end{definition}
+
 
 \newpage
 
 \begin{prooftree}
 \AxiomC{}
-\UnaryInfC{$ +x, -x $}
+\UnaryInfC{$ x, x $}
 \end{prooftree}
 
 \begin{prooftree}
@@ -146,15 +162,15 @@ Valid terms:
 \end{prooftree}
 
 \begin{prooftree}
-\AxiomC{$ \Gamma, t , u $}
-% \RightLabel{}
-\UnaryInfC{$\Gamma, \cs t u $}
-\end{prooftree}
-
-\begin{prooftree}
 \def\fCenter{}
 \AxiomC{$ \Gamma, t , u $}
 \UnaryInfC{$\Gamma, \contr{t, u}$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$ \Gamma, t , u $}
+% \RightLabel{}
+\UnaryInfC{$\Gamma, \cs t u $}
 \end{prooftree}
 
 \begin{prooftree}
