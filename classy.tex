@@ -1,0 +1,183 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{classy}
+\author{acondolu}
+\date{March 2024}
+
+\usepackage{amssymb}
+\usepackage{bussproofs}
+
+\newcommand{\ca}[2]{\langle #1, #2\rangle}
+\newcommand{\cs}[2]{\left[#1, #2\right]}
+\newcommand{\ee}[0]{\blacksquare}
+\newcommand{\contr}[1]{\left\{#1\right\}}
+
+\begin{document}
+
+\maketitle
+
+\[ t, u ::= \ee \mid x \mid \ca t u \mid \cs t u \mid \contr {t, u}\]
+
+\vspace{1em}
+
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$ x \colon A, x \colon A^\bot$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$ \Gamma$}
+\RightLabel{weakening}
+\UnaryInfC{$\Gamma, \ee \colon A$}
+\end{prooftree}
+
+\begin{prooftree}
+% \def\fCenter{\mbox{\ $\Rightarrow$\ }}
+\def\fCenter{}
+\AxiomC{$ \Gamma, t \colon A, u \colon A$}
+\RightLabel{contraction}
+\UnaryInfC{$\Gamma, \contr{t, u} \colon A$}
+\end{prooftree}
+
+\begin{prooftree}
+% \def\fCenter{\mbox{\ $\Rightarrow$\ }}
+\def\fCenter{}
+\AxiomC{$ \Gamma, t \colon A$}
+\AxiomC{$ \Delta, u \colon B$}
+\RightLabel{}
+\BinaryInf$\fCenter \Gamma, \Delta, \ca t u \colon A \wedge B$
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$ \Gamma, t \colon A, u \colon B$}
+% \RightLabel{}
+\UnaryInfC{$\Gamma, \cs t u \colon A \vee B$}
+\end{prooftree}
+
+% \begin{prooftree}
+% \AxiomC{$ \Gamma, t \colon \neg A$}
+% \AxiomC{$ \Delta, u \colon \neg B$}
+% \RightLabel{}
+% \BinaryInf$\fCenter \Gamma, \Delta, \ca t u \colon \neg (A \vee B)$
+% \end{prooftree}
+
+% \begin{prooftree}
+% \AxiomC{$ \Gamma, t \colon \neg A, u \colon \neg B$}
+% % \RightLabel{}
+% \UnaryInfC{$\Gamma, \cs t u \colon \neg ( A \wedge B)$}
+% \end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$ \Gamma, t \colon A$}
+\AxiomC{$ \Delta, u \colon A^\bot$}
+\RightLabel{cut($t * u$)}
+\BinaryInfC{$\Gamma, \Delta$}
+\end{prooftree}
+
+\newpage
+
+\[ \mathcal{C} ::= \epsilon \mid \mathcal{C}, t * u \]
+
+$*$ is commutative.
+
+\vspace{1em}
+
+\begin{tabular}{l l c l}
+   & $\mathcal{C},\ca {t_1} {t_2} * \cs {u_1} {u_2}$ & $\to_1$ & $\mathcal{C}, t_1*u_1, t_2*u_2$ \\
+   & $\mathcal{C}, x * t$ & $\to_2$ & $\mathcal{C}\{x \leftarrow t\}$ \\
+   % & $\mathcal{C}, +x * t$ & $ \to$ & $\mathcal{C}\{-x \leftarrow t\}$ \\
+   & $\mathcal{C},\contr{t_1, u_2} * u$ & $\to_3$ & $\mathcal{C}^\alpha, t_1*u, t_2*u^\alpha$ \\
+   % & $\Delta, \ee$ & $\to_5$ & $\Delta$ \\
+   & $\mathcal{C},\ca {t_1} {t_2} * \ee$ & $\to$ & $\mathcal{C}, t_1*\ee, t_2*\ee$ \\
+   & $\mathcal{C},\cs {t_1} {t_2} * \ee$ & $\to$ & $\mathcal{C}, t_1*\ee, t_2*\ee$ \\
+\end{tabular}
+
+\vspace{2em}
+
+\[T := \cs{\contr{\ca{-x}{-y}, +x}}{+y}\]
+
+\begin{tabular}{ll}
+    & $\contr{\ca{-x}{-y}, +x} * T', +y$ \\
+    $=$ & $\contr{\ca{-x}{-y}, +x} * \cs{\contr{\ca{-x'}{-y'}, +x'}}{+y'}, +y$ \\
+    $\to_3$ & $\ca{-x}{-y} * \cs{\contr{\ca{-x'}{-y'}, +x'}}{+y'}, +x * T'', +y$ \\
+    $\to_1$ & $-x * \contr{\ca{-x'}{-y'}, +x'}, {-y}*{+y'}, +x * T'', +y$ \\
+    $\to_2$ & $-x * \contr{\ca{-x'}{-y'}, +x'}, +x * T'', +y'$ \\
+    $\to_2$ & $\contr{\ca{-x'}{-y'}, +x'} * T'', +y'$ \\
+\end{tabular}
+
+\vspace{2em}
+
+% Fun facts:
+% \begin{itemize}
+%     \item all variables are linear!
+%     \item $Left(x) \equiv \cs{x}{\ee}$
+%     \item $Right(x) \equiv \cs{\ee}{x}$
+%     \item $Pair(a, b) \equiv \ca a b$
+% \end{itemize}
+
+\begin{tabular}{l}
+    $\tau(\lambda x. t) = (E \setminus E_x, \cs{\contr{E_x}}{t'}) \mbox{ where } (E, t') = \tau(t) $ \\
+    $\tau(x t_1 \ldots t_n) = (E_1\ldots E_n(x\mapsto\ca{t_1}{\ldots\ca{t_n}{\alpha}}), \alpha) \mbox{ where } (E_i, t_i) = \tau(t_i)$
+\end{tabular}
+
+$E_x := \contr{t \mid (x \mapsto t) \in E}$
+
+\vspace{2em}
+
+Valid terms:
+\begin{itemize}
+    \item $\sigma \colon Var \to ? $
+    \item $scopes(t) = \{ \sigma(x) \mid x \mbox{ in } t \}$
+    \item If $t_1 * t_2$ and $u_1 * u_2$, then $vars(t_1) \cap vars(u_1)$ iff $vars(t_2) \cap vars(u_2)$
+    \item If $\ca{t}{u}$, then $scopes(t)$ disjoint $scopes(u)$
+\end{itemize}
+
+\newpage
+
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$ +x, -x $}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$ \Gamma $}
+\UnaryInfC{$\Gamma, \ee$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$ \Gamma, t , u $}
+% \RightLabel{}
+\UnaryInfC{$\Gamma, \cs t u $}
+\end{prooftree}
+
+\begin{prooftree}
+\def\fCenter{}
+\AxiomC{$ \Gamma, t , u $}
+\UnaryInfC{$\Gamma, \contr{t, u}$}
+\end{prooftree}
+
+\begin{prooftree}
+\def\fCenter{}
+\AxiomC{$ \Gamma, t $}
+\AxiomC{$ \Delta, u $}
+\RightLabel{}
+\BinaryInfC{$\Gamma, \Delta, \ca t u $}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$ \Gamma, t $}
+\AxiomC{$ \Delta, u $}
+\RightLabel{$t * u$}
+\BinaryInfC{$\Gamma, \Delta$}
+\end{prooftree}
+
+\vspace{2em}
+
+\begin{itemize}
+    \item $x*a$
+    \item $x*b$
+    \item $<a, b>$
+\end{itemize}
+
+\end{document}
