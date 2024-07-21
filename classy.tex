@@ -5,23 +5,17 @@
 \author{acondolu}
 \date{March 2024}
 
-\usepackage{amssymb}
-
-\usepackage{amsthm}
-\newtheorem{definition}{Definition}
-
-\usepackage{bussproofs}
-
-\newcommand{\ca}[2]{\langle #1, #2\rangle}
-\newcommand{\cs}[2]{\left[#1, #2\right]}
-\newcommand{\ee}[0]{\blacksquare}
-\newcommand{\contr}[1]{\left\{#1\right\}}
+\input{macros.tex}
 
 \begin{document}
 
 \maketitle
 
-\[ t, u ::= \ee \mid x \mid \ca t u \mid \cs t u \mid \contr {t, u}\]
+\section{Grammar}
+
+\begin{definition}[Terms]
+\[ t, u ::= \Result \mid \ee \mid x \mid \ca t u \mid \cs t u \mid \contr {t, u}\]
+\end{definition}
 
 \vspace{1em}
 
@@ -75,41 +69,63 @@
 \begin{prooftree}
 \AxiomC{$ \Gamma, t \colon A$}
 \AxiomC{$ \Delta, u \colon A^\bot$}
-\RightLabel{cut($t * u$)}
+\RightLabel{cut}
 \BinaryInfC{$\Gamma, \Delta$}
 \end{prooftree}
 
 \newpage
 
-Programs:
-\[ \Pi ::= \epsilon \mid \Pi, t * u \]
+% TODO: define cut expression
 
-Note: $*$ is commutative.
+\begin{definition}[Programs]
+    A \emph{cut expression} has the form $t * u$ where
+    $t$ and $u$ are terms. The cut operator $*$ is commutative.
+
+    Programs are denoted by $\Pi$ and are unordered
+    sequences of cut expressions.
+    \[ \Pi ::= \epsilon \mid \Pi, t * u \]
+\end{definition}
+
 
 \vspace{1em}
-
-\begin{tabular}{l l c l}
-   & $\Pi,\ca {t_1} {t_2} * \cs {u_1} {u_2}$ & $\to_1$ & $\Pi, t_1*u_1, t_2*u_2$ \\
-   & $\Pi, x * t$ & $\to_2$ & $\Pi\{x \leftarrow t\}$ \\
-   % & $\Pi, +x * t$ & $ \to$ & $\Pi\{-x \leftarrow t\}$ \\
-   & $\Pi,\contr{t_1, u_2} * u$ & $\to_3$ & $\Pi^\alpha, t_1*u, t_2*u^\alpha$ \\
-   % & $\Delta, \ee$ & $\to_5$ & $\Delta$ \\
+\begin{definition}[Reduction rules].\\[1em]
+\bgroup
+\def\arraystretch{1.3}
+\begin{tabular}{l l c l l}
+   Destruct & $\Pi,\ca {t_1} {t_2} * \cs {u_1} {u_2}$ & $\to_1$ & $\Pi, t_1*u_1, t_2*u_2$ \\
+   Send & $\Pi, x * t$ & $\to_2$ & $\Pi\treplace{x \Leftarrow t}$ \\
+   Copy & $\Pi,\contr{t_1, t_2} * u$ & $\to_3$ & $\Pi^\alpha, t_1*u, t_2*u^\alpha$ \\
    & $\Pi,\ca {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
    & $\Pi,\cs {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
+\end{tabular}\egroup\\
+
+\noindent The Copy rule makes a copy of the term $u$ by also
+duplicating the free variables that occur in it.
+We denote by $u^\alpha$ the term obtained from $u$ by replacing
+each free variable $x$ with a new fresh variable $x'$; the
+program $\Pi^\alpha$ is defined as:
+
+\[ \Pi^\alpha \defeq \Pi\treplace{x \Leftarrow \contr{x,x'} \mid x \mbox { free in } u} \]
+
+\end{definition}
+
+\begin{example}[Divergent program]
+
+\[\omega \defeq \cs{\contr{\ca{x}{y}, x}}{y}\]
+
+\bgroup
+\def\arraystretch{1.3}
+\begin{tabular}{rl}
+    $\Omega \defeq $ & $\omega * \ca{\omega'}{\Result}$ \\
+    $\to_1$ & $\contr{\ca{x}{y}, x} * \omega', y * \Result$ \\
+    $=$ & $\contr{\ca{x}{y}, x} * \cs{\contr{\ca{x'}{y'}, x'}}{y'}, y * \Result$ \\
+    $\to_3$ & $\ca{x}{y} * \cs{\contr{\ca{x'}{y'}, x'}}{y'}, x * \omega'', y * \Result$ \\
+    $\to_1$ & $x * \contr{\ca{x'}{y'}, x'}, {y}*{y'}, x * \omega'', y * \Result$ \\
+    $\to_2$ & $x * \contr{\ca{x'}{y'}, x'}, x * \omega'', y' * \Result$ \\
+    $\to_2$ & $\contr{\ca{x'}{y'}, x'} * \omega'', y' * \Result$ \\
 \end{tabular}
-
-\vspace{2em}
-
-\[T := \cs{\contr{\ca{-x}{-y}, +x}}{+y}\]
-
-\begin{tabular}{ll}
-    & $\contr{\ca{-x}{-y}, +x} * T', +y$ \\
-    $=$ & $\contr{\ca{-x}{-y}, +x} * \cs{\contr{\ca{-x'}{-y'}, +x'}}{+y'}, +y$ \\
-    $\to_3$ & $\ca{-x}{-y} * \cs{\contr{\ca{-x'}{-y'}, +x'}}{+y'}, +x * T'', +y$ \\
-    $\to_1$ & $-x * \contr{\ca{-x'}{-y'}, +x'}, {-y}*{+y'}, +x * T'', +y$ \\
-    $\to_2$ & $-x * \contr{\ca{-x'}{-y'}, +x'}, +x * T'', +y'$ \\
-    $\to_2$ & $\contr{\ca{-x'}{-y'}, +x'} * T'', +y'$ \\
-\end{tabular}
+\egroup
+\end{example}
 
 \vspace{2em}
 
@@ -121,14 +137,31 @@ Note: $*$ is commutative.
 %     \item $Pair(a, b) \equiv \ca a b$
 % \end{itemize}
 
+\section{$\lambda$-terms}
+
+We denote by $\sigma$ a sequence of assignment of variables to terms
+of the form $(x \mapsto t)$.
+
+We denote by $\sigma_x$ the restriction of an assignment $\sigma$
+to the variable $x$:
+\[\sigma_x := \contr{t \mid (x \mapsto t) \in \sigma}.\]
+
+The translation $\ltrans{t}$ of a $\lambda$-term into a program relies on an auxiliary function $\ltransaux{t}$, which takes
+in input a $\lambda$-term and returns a thriple $(\cuts; \sigma; t')$ composed of a program, a substitution, and a term.
+
+The auxiliary function $\ltransaux{t}$ is defined as follows:
+
 \begin{tabular}{l}
-    $\tau(\lambda x. t) = (E \setminus E_x, \cs{\contr{E_x}}{t'}) \mbox{ where } (E, t') = \tau(t) $ \\
-    $\tau(x t_1 \ldots t_n) = (E_1\ldots E_n(x\mapsto\ca{t_1}{\ldots\ca{t_n}{\alpha}}), \alpha) \mbox{ where } (E_i, t_i) = \tau(t_i)$
+    $\ltrans{\lambda x. t} = (\cuts; \sigma \setminus \sigma_x; \cs{\contr{\sigma_x}}{t'}) \mbox{ where } (\cuts; \sigma; t') \defeq \ltrans{t} $ \\
+    $\ltrans{x t_1 \ldots t_n} = (\cuts_1\ldots\cuts_n; \sigma_1\ldots \sigma_n(x\mapsto\ca{t_1'}{\ldots\ca{t_n'}{z}}); z) \mbox{ where } (\cuts_i; \sigma_i; t_i') \defeq \ltrans{t_i} \mbox{ and } z \mbox{ is a fresh variable}$ \\
+    $\ltrans{t_0 t_1 \ldots t_n} = (\cuts_0\cuts_1\ldots\cuts_n, t_0' * \ca{t_1'}{\ldots\ca{t_n'}{z}}; \sigma_0\ldots \sigma_n; z) \mbox{ where } (\cuts_i; \sigma_i; t_i') \defeq \ltrans{t_i} \mbox{ and } z \mbox{ is a fresh variable} \mbox { and } t_0 \mbox{ is a lambda abstraction}.$
 \end{tabular}
 
-$E_x := \contr{t \mid (x \mapsto t) \in E}$
+The translation $\ltrans{t}$ is then defined as follows:
 
-\vspace{2em}
+\[\ltrans{t} \defeq \cuts\treplace{x \Leftarrow \Result} \mbox{ where } (\cuts; \sigma; x) \defeq \ltransaux{t}. \]
+
+\section{Correctness}
 
 \begin{definition}[$\Pi$-path]
     Let $\Pi$ be a program. A $\Pi$-path is given by:
@@ -148,44 +181,55 @@ $E_x := \contr{t \mid (x \mapsto t) \in E}$
     \end{itemize}
 \end{definition}
 
+\section{Simulation}
+
+\begin{theorem}
+    For every $\lambda$-terms $t$ and $u$, if $t \to_\beta u$,
+    then $\ltrans{t} \to \ltrans{u}$.
+\end{theorem}
+\begin{proof}
+    Let $C$ be an evaluation context such that $t = C\langle(\lambda x. t')u'\rangle$ and $u = C\langle t'\treplace{x\Leftarrow u'}\rangle$.
+\end{proof}
+
 
 \newpage
 
+\section{Stub correctness proofs}
+
 \begin{prooftree}
 \AxiomC{}
-\UnaryInfC{$ x, x $}
+\UnaryInfC{$ \Cut x, x $ \wf}
 \end{prooftree}
 
 \begin{prooftree}
-\AxiomC{$ \Gamma $}
-\UnaryInfC{$\Gamma, \ee$}
+\AxiomC{$\Pi \Cut \Gamma $ \wf}
+\UnaryInfC{$\Pi \Cut \Gamma, \ee$ \wf}
 \end{prooftree}
 
 \begin{prooftree}
 \def\fCenter{}
-\AxiomC{$ \Gamma, t , u $}
-\UnaryInfC{$\Gamma, \contr{t, u}$}
+\AxiomC{$\Pi \Cut \Gamma, t , u $ \wf}
+\UnaryInfC{$\Pi \Cut \Gamma, \contr{t, u}$ \wf}
 \end{prooftree}
 
 \begin{prooftree}
-\AxiomC{$ \Gamma, t , u $}
+\AxiomC{$\Pi \Cut \Gamma, t , u $ \wf}
 % \RightLabel{}
-\UnaryInfC{$\Gamma, \cs t u $}
+\UnaryInfC{$\Pi \Cut \Gamma, \cs t u $ \wf}
 \end{prooftree}
 
 \begin{prooftree}
 \def\fCenter{}
-\AxiomC{$ \Gamma, t $}
-\AxiomC{$ \Delta, u $}
+\AxiomC{$ \Pi \Cut \Gamma, t $ \wf}
+\AxiomC{$ \Pi' \Cut \Delta, u $ \wf}
 \RightLabel{}
-\BinaryInfC{$\Gamma, \Delta, \ca t u $}
+\BinaryInfC{$\Pi, \Pi' \Cut \Gamma, \Delta, \ca t u $ \wf}
 \end{prooftree}
 
 \begin{prooftree}
-\AxiomC{$ \Gamma, t $}
-\AxiomC{$ \Delta, u $}
-\RightLabel{$t * u$}
-\BinaryInfC{$\Gamma, \Delta$}
+\AxiomC{$ \Pi \Cut \Gamma, t $ \wf}
+\AxiomC{$ \Pi' \Cut \Delta, u $ \wf}
+\BinaryInfC{$\Pi, \Pi', t * u \Cut \Gamma, \Delta$ \wf}
 \end{prooftree}
 
 \vspace{2em}
@@ -195,5 +239,76 @@ $E_x := \contr{t \mid (x \mapsto t) \in E}$
     \item $x*b$
     \item $<a, b>$
 \end{itemize}
+
+% \tikzset{> = stealth}
+\begin{tikzpicture}[thick, box/.style = {draw,red,inner sep=10pt,rounded corners=5pt}]
+    \node (x) at (0,0) {$X$};
+    \node (y) at (2,0) {$Y$};
+    \node (z) at (1,1) {$Z$};
+    \path[->] (x) edge (y);
+    \path[->] (z) edge (x);
+    \path[->] (z) edge (y);
+    \node[box, fit=(x)(y)] {};
+\end{tikzpicture}
+
+\begin{tikzpicture}[thick, box/.style = {draw,red,inner sep=10pt,rounded corners=5pt}]
+    \node (z) at (0,1.5) {$\oplus$};
+    \node (x) at (0,0) {$x$};
+    \draw[-] (z) to [bend right=30](x);
+    \draw[-] (z) to [bend left=30](x);
+    % \node[box, fit=(x)(y)] {};
+\end{tikzpicture}
+
+\[T := \cs{\contr{\ca{-x}{-y}, +x}}{+y}\]
+
+\begin{tikzpicture}[
+    thick, box/.style = {draw,red,inner sep=10pt,rounded corners=5pt}
+  ]
+    \node (x) at (0,0) {$x$};
+    \node (y) at (1,0) {$y$};
+    \node (1) at (0.5, 1) {$\otimes$};
+    \draw[-] (1) to [bend right=30](x);
+    \draw[-] (1) to [bend left=30](y);
+    \node[box, fit=(x)] {};
+    \node[box, fit=(y)] {};
+\end{tikzpicture}
+
+\newpage
+
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$ \Cut x, x $ \wf}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Pi \Cut \Gamma $ \wf}
+\UnaryInfC{$\Pi \Cut \Gamma, \ee$ \wf}
+\end{prooftree}
+
+\begin{prooftree}
+\def\fCenter{}
+\AxiomC{$\Pi \Cut \Gamma, t , u $ \wf}
+\UnaryInfC{$\Pi, \alpha=\contr{t, u} \Cut \Gamma, \alpha $ \wf}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Pi \Cut \Gamma, t , u $ \wf}
+% \RightLabel{}
+\UnaryInfC{$\Pi, \alpha=\cs{t}{u} \Cut \Gamma, \alpha $ \wf}
+\end{prooftree}
+
+\begin{prooftree}
+\def\fCenter{}
+\AxiomC{$ \Pi \Cut \Gamma, t $ \wf}
+\AxiomC{$ \Pi' \Cut \Delta, u $ \wf}
+\RightLabel{}
+\BinaryInfC{$\alpha=\ca {\Pi t} {\Pi' u} \Cut \Gamma, \Delta, \alpha  $ \wf}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$ \Pi \Cut \Gamma, t $ \wf}
+\AxiomC{$ \Pi' \Cut \Delta, u $ \wf}
+\BinaryInfC{$\alpha = \Pi t * \Pi' u \Cut \alpha $ \wf}
+\end{prooftree}
 
 \end{document}
