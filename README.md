@@ -1,1 +1,3 @@
 # classy
+
+[Rendered](./classy.pdf)
