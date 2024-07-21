@@ -38,6 +38,7 @@
 
 \begin{prooftree}
 \AxiomC{}
+\RightLabel{axiom}
 \UnaryInfC{$ x \colon A, x \colon A^\bot$}
 \end{prooftree}
 
@@ -57,7 +58,7 @@
 
 \begin{prooftree}
 \AxiomC{$ \Gamma, t \colon A, u \colon B$}
-% \RightLabel{}
+\RightLabel{disjunction}
 \UnaryInfC{$\Gamma, \cs t u \colon A \vee B$}
 \end{prooftree}
 
@@ -66,7 +67,7 @@
 \def\fCenter{}
 \AxiomC{$ \Gamma, t \colon A$}
 \AxiomC{$ \Delta, u \colon B$}
-\RightLabel{}
+\RightLabel{conjunction}
 \BinaryInf$\fCenter \Gamma, \Delta, \ca t u \colon A \wedge B$
 \end{prooftree}
 
@@ -90,6 +91,8 @@
 \BinaryInfC{$\Gamma, \Delta$}
 \end{prooftree}
 
+Note: the rules Axiom, Cut, Conjunction, Disjunction correspond to the sequent calculus rules of multiplicative linear logic (MLL).
+
 \end{definition}
 
 \newpage
@@ -100,31 +103,37 @@
     A \emph{cut expression} has the form $t * u$ where
     $t$ and $u$ are terms. The cut operator $*$ is commutative.
 
-    Programs are denoted by $\Pi$ and are unordered
-    sequences of cut expressions.
+    Programs are denoted by $\Pi$ and are (possibly empty) unordered sequences of cut expressions:
     \[ \Pi ::= \epsilon \mid \Pi, t * u \]
 \end{definition}
 
 
 \vspace{1em}
-\begin{definition}[Reduction rules].\\[1em]
+\begin{definition}[Reduction rules]
+    Reduction rules can apply to any cut expression in a
+    program, and are defined as follows:
+
 \bgroup
 \def\arraystretch{1.3}
 \begin{tabular}{l l c l l}
-   Destruct & $\Pi,\ca {t_1} {t_2} * \cs {u_1} {u_2}$ & $\to_d$ & $\Pi, t_1*u_1, t_2*u_2$ \\
-   Send & $\Pi, x * t$ & $\to_s$ & $\Pi\treplace{x \Leftarrow t}$ \\
-   Copy & $\Pi,\contr{t_1, t_2} * u$ & $\to_c$ & $\Pi, t_1*u, t_2*u^\alpha$ \\
+   \emph{Destruct} & $\Pi,\ca {t_1} {t_2} * \cs {u_1} {u_2}$ & $\to_d$ & $\Pi, t_1*u_1, t_2*u_2$ \\
+   \emph{Send} & $\Pi, x * t$ & $\to_s$ & $\Pi\treplace{x \Leftarrow t}$ \\
+   \emph{Copy} & $\Pi,\contr{t_1, t_2} * u$ & $\to_c$ & $\Pi, t_1*u, t_2*u^\alpha$ & $(*)$\\
 %    & $\Pi,\ca {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
 %    & $\Pi,\cs {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
 \end{tabular}\egroup\\
 
-\noindent The Copy rule makes a copy of the term $u$ by
-duplicating the free variables that occur in it.
-We denote by $u^\alpha$ the term obtained from $u$ by replacing
-each variable $x$ with a new fresh variable $x'$.
-Note: if $u$ contains free variables, the notion of copy is
-undefined at the moment (TODO).
+\noindent $(*)$ The \emph{Copy} rule makes a copy of the \emph{closed} term $u$ by
+duplicating all variables that occur in it.
+We denote by $u^\alpha$ a term obtained from $u$ by replacing
+each variable $x$ with a new globally fresh variable $x'$. $u$ and $u^\alpha$ are $\alpha$-equivalent according to upcoming
+definition of $\alpha$-equivalence.
+\textcolor{red}{Note: if $u$ contains free variables, the notion of copy is undefined at the moment (TODO).}
 
+\end{definition}
+
+\begin{definition}[$\alpha$-equivalence]
+    We define $\equiv_\alpha$, the equivalence relation over \clats{} or \claps{} up to renaming of variables. (TODO)
 \end{definition}
 
 \begin{example}[Divergent program]
@@ -134,7 +143,7 @@ undefined at the moment (TODO).
 \bgroup
 \def\arraystretch{1.3}
 \begin{tabular}{rl}
-    $\Omega \defeq $ & $\omega * \ca{\omega'}{\Result}$ \\
+    $\Omega \, \defeq $ & $\omega * \ca{\omega'}{\Result}$ \\
     $\to_d$ & $\contr{\ca{x}{y}, x} * \omega', y * \Result$ \\
     $=$ & $\contr{\ca{x}{y}, x} * \cs{\contr{\ca{x'}{y'}, x'}}{y'}, y * \Result$ \\
     $\to_c$ & $\ca{x}{y} * \cs{\contr{\ca{x'}{y'}, x'}}{y'}, x * \omega'', y * \Result$ \\
@@ -145,16 +154,12 @@ undefined at the moment (TODO).
 \egroup
 \end{example}
 
-\begin{definition}[$\alpha$-equivalence]
-    We define $\equiv_\alpha$, the equivalence relation over \clats{} or \claps{} up to renaming of variables. (TODO)
-\end{definition}
-
 \section{Confluence}
-Critical pairs may arise because of terms like:
+Upon a first inspection, critical pairs may seem to arise because of terms of the form $x * y$, $\contr{t_1, t_2} * x$, or $\contr{t_1, t_2} * \contr{u_1, u_2}$.
 \begin{itemize}
-    \item $x * y$: not actually critical pairs, they are $\alpha$-equivalent.
-    \item $\contr{t_1, t_2} * x$: invalid at the moment, because $x$ has a free variable (TODO).
-    \item $\contr{t_1, t_2} * \contr{u_1, u_2}$: locally confluent.
+    \item $\Pi\treplace{y \Leftarrow x} \leftarrow_s \Pi, x * y \to_s \Pi\treplace{x \Leftarrow y}$. This is actually not a critical pair, because $\Pi\treplace{y \Leftarrow x} \equiv_\alpha \Pi\treplace{x \Leftarrow y}$ \textcolor{red}{ in valid programs}.
+    \item $\Pi, \contr{t_1, t_2} * x$: \textcolor{red}{cannot apply $\to_c$, because $x$ has a free variable (TODO).}
+    \item $\contr{t_1, t_2} * \contr{u_1, u_2}$: it is clearly locally confluent.
 \end{itemize}
 
 \vspace{2em}

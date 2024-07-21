@@ -1,4 +1,7 @@
 % Imports
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{amsmath}
@@ -23,9 +26,9 @@
 
 % Classy specific notation
 
-\newcommand{\mytt}[1]{\mbox{\texttt{#1}}}
-\newcommand{\ca}[2]{\mytt{<} #1, #2\mytt{>}}
-\newcommand{\cs}[2]{\mytt{[}#1, #2\mytt{]}}
+\newcommand{\mytt}[1]{\mbox{\normalfont\texttt{#1}}}
+\newcommand{\ca}[2]{\mytt{<} #1 \mytt{,} #2\mytt{>}}
+\newcommand{\cs}[2]{\mytt{[}#1 \mytt{,} #2\mytt{]}}
 \newcommand{\ee}[0]{\blacksquare}
 \newcommand{\contr}[1]{\mytt{\{}#1\mytt{\}}}
 \newcommand{\wf}[0]{\mbox{ wf}}
