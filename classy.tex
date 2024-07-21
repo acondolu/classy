@@ -11,13 +11,30 @@
 
 \maketitle
 
-\section{Grammar}
+\section{Calculus}
 
 \begin{definition}[Terms]
-\[ t, u ::= \Result \mid \ee \mid x \mid \ca t u \mid \cs t u \mid \contr {t, u}\]
+\[ t, u ::= \ee \mid x \mid \ca t u \mid \cs t u \mid \contr {t, u}\]
 \end{definition}
 
-\vspace{1em}
+\begin{definition}[Types]
+\[ A, B ::= p \mid \bar p \mid A \wedge B \mid A \vee B \]
+\end{definition}
+
+\begin{definition}[Dual type $A^\bot$].
+
+\bgroup
+\def\arraystretch{1.3}
+\begin{tabular}{l c l}
+   $p^\bot$ & $\defeq$ & $\bar p$ \\
+   ${\bar p}^\bot$ & $\defeq$ & $p$ \\
+   $(A \vee B)^\bot$ & $\defeq$ & $A^\bot \wedge B^\bot$ \\
+   $(A \wedge B)^\bot$ & $\defeq$ & $A^\bot \vee B^\bot$ \\
+\end{tabular}\egroup
+    
+\end{definition}
+
+\begin{definition}[Typing rules].
 
 \begin{prooftree}
 \AxiomC{}
@@ -73,6 +90,8 @@
 \BinaryInfC{$\Gamma, \Delta$}
 \end{prooftree}
 
+\end{definition}
+
 \newpage
 
 % TODO: define cut expression
@@ -92,20 +111,19 @@
 \bgroup
 \def\arraystretch{1.3}
 \begin{tabular}{l l c l l}
-   Destruct & $\Pi,\ca {t_1} {t_2} * \cs {u_1} {u_2}$ & $\to_1$ & $\Pi, t_1*u_1, t_2*u_2$ \\
-   Send & $\Pi, x * t$ & $\to_2$ & $\Pi\treplace{x \Leftarrow t}$ \\
-   Copy & $\Pi,\contr{t_1, t_2} * u$ & $\to_3$ & $\Pi^\alpha, t_1*u, t_2*u^\alpha$ \\
-   & $\Pi,\ca {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
-   & $\Pi,\cs {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
+   Destruct & $\Pi,\ca {t_1} {t_2} * \cs {u_1} {u_2}$ & $\to_d$ & $\Pi, t_1*u_1, t_2*u_2$ \\
+   Send & $\Pi, x * t$ & $\to_s$ & $\Pi\treplace{x \Leftarrow t}$ \\
+   Copy & $\Pi,\contr{t_1, t_2} * u$ & $\to_c$ & $\Pi, t_1*u, t_2*u^\alpha$ \\
+%    & $\Pi,\ca {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
+%    & $\Pi,\cs {t_1} {t_2} * \ee$ & $\to$ & $\Pi, t_1*\ee, t_2*\ee$ \\
 \end{tabular}\egroup\\
 
-\noindent The Copy rule makes a copy of the term $u$ by also
+\noindent The Copy rule makes a copy of the term $u$ by
 duplicating the free variables that occur in it.
 We denote by $u^\alpha$ the term obtained from $u$ by replacing
-each free variable $x$ with a new fresh variable $x'$; the
-program $\Pi^\alpha$ is defined as:
-
-\[ \Pi^\alpha \defeq \Pi\treplace{x \Leftarrow \contr{x,x'} \mid x \mbox { free in } u} \]
+each variable $x$ with a new fresh variable $x'$.
+Note: if $u$ contains free variables, the notion of copy is
+undefined at the moment (TODO).
 
 \end{definition}
 
@@ -117,15 +135,27 @@ program $\Pi^\alpha$ is defined as:
 \def\arraystretch{1.3}
 \begin{tabular}{rl}
     $\Omega \defeq $ & $\omega * \ca{\omega'}{\Result}$ \\
-    $\to_1$ & $\contr{\ca{x}{y}, x} * \omega', y * \Result$ \\
+    $\to_d$ & $\contr{\ca{x}{y}, x} * \omega', y * \Result$ \\
     $=$ & $\contr{\ca{x}{y}, x} * \cs{\contr{\ca{x'}{y'}, x'}}{y'}, y * \Result$ \\
-    $\to_3$ & $\ca{x}{y} * \cs{\contr{\ca{x'}{y'}, x'}}{y'}, x * \omega'', y * \Result$ \\
-    $\to_1$ & $x * \contr{\ca{x'}{y'}, x'}, {y}*{y'}, x * \omega'', y * \Result$ \\
-    $\to_2$ & $x * \contr{\ca{x'}{y'}, x'}, x * \omega'', y' * \Result$ \\
-    $\to_2$ & $\contr{\ca{x'}{y'}, x'} * \omega'', y' * \Result$ \\
+    $\to_c$ & $\ca{x}{y} * \cs{\contr{\ca{x'}{y'}, x'}}{y'}, x * \omega'', y * \Result$ \\
+    $\to_d$ & $x * \contr{\ca{x'}{y'}, x'}, {y}*{y'}, x * \omega'', y * \Result$ \\
+    $\to_s$ & $x * \contr{\ca{x'}{y'}, x'}, x * \omega'', y' * \Result$ \\
+    $\to_s$ & $\contr{\ca{x'}{y'}, x'} * \omega'', y' * \Result$ \\
 \end{tabular}
 \egroup
 \end{example}
+
+\begin{definition}[$\alpha$-equivalence]
+    We define $\equiv_\alpha$, the equivalence relation over \clats{} or \claps{} up to renaming of variables. (TODO)
+\end{definition}
+
+\section{Confluence}
+Critical pairs may arise because of terms like:
+\begin{itemize}
+    \item $x * y$: not actually critical pairs, they are $\alpha$-equivalent.
+    \item $\contr{t_1, t_2} * x$: invalid at the moment, because $x$ has a free variable (TODO).
+    \item $\contr{t_1, t_2} * \contr{u_1, u_2}$: locally confluent.
+\end{itemize}
 
 \vspace{2em}
 
@@ -137,7 +167,10 @@ program $\Pi^\alpha$ is defined as:
 %     \item $Pair(a, b) \equiv \ca a b$
 % \end{itemize}
 
-\section{$\lambda$-terms}
+\section{Embedding $\lambda$-terms}
+
+An embedding of \lats{} into \claps{} can be defined through the
+usual type embedding that translates $A \to B$ into $A \vee B^\bot$.
 
 We denote by $\sigma$ a sequence of assignment of variables to terms
 of the form $(x \mapsto t)$.
@@ -151,15 +184,26 @@ in input a $\lambda$-term and returns a thriple $(\cuts; \sigma; t')$ composed o
 
 The auxiliary function $\ltransaux{t}$ is defined as follows:
 
-\begin{tabular}{l}
-    $\ltrans{\lambda x. t} = (\cuts; \sigma \setminus \sigma_x; \cs{\contr{\sigma_x}}{t'}) \mbox{ where } (\cuts; \sigma; t') \defeq \ltrans{t} $ \\
-    $\ltrans{x t_1 \ldots t_n} = (\cuts_1\ldots\cuts_n; \sigma_1\ldots \sigma_n(x\mapsto\ca{t_1'}{\ldots\ca{t_n'}{z}}); z) \mbox{ where } (\cuts_i; \sigma_i; t_i') \defeq \ltrans{t_i} \mbox{ and } z \mbox{ is a fresh variable}$ \\
-    $\ltrans{t_0 t_1 \ldots t_n} = (\cuts_0\cuts_1\ldots\cuts_n, t_0' * \ca{t_1'}{\ldots\ca{t_n'}{z}}; \sigma_0\ldots \sigma_n; z) \mbox{ where } (\cuts_i; \sigma_i; t_i') \defeq \ltrans{t_i} \mbox{ and } z \mbox{ is a fresh variable} \mbox { and } t_0 \mbox{ is a lambda abstraction}.$
+\begin{center}
+\bgroup
+\def\arraystretch{1.3}
+\begin{tabular}{lcl}
+    $\ltransaux{\lambda x. t} $ & $\defeq$ & $(\cuts; \sigma \setminus \sigma_x; \cs{\contr{\sigma_x}}{t'}) $ \\
+    & & where $(\cuts; \sigma; t') \defeq \ltransaux{t}$ \\
+    $\ltransaux{x t_1 \ldots t_n}$ & $\defeq$ & $(\cuts_1\ldots\cuts_n; \sigma_1\ldots \sigma_n(x\mapsto\ca{t_1'}{\ldots\ca{t_n'}{z}}); z) $ \\
+    & & where $(\cuts_i; \sigma_i; t_i') \defeq \ltransaux{t_i}$ for $i=1\ldots n$\\
+    & & and $z$ is a fresh variable \\
+    $\ltransaux{t_0 t_1 \ldots t_n}$ & $\defeq$ & $(\cuts_0\cuts_1\ldots\cuts_n, t_0' * \ca{t_1'}{\ldots\ca{t_n'}{z}}; \sigma_0\ldots \sigma_n; z)$ \\
+    & & where $(\cuts_i; \sigma_i; t_i') \defeq \ltransaux{t_i}$ for $i=0\ldots n$ \\
+    & & and $z$ is a fresh variable \\
+    & & and $t_0$ is a lambda abstraction. \\
 \end{tabular}
+\egroup
+\end{center}
 
 The translation $\ltrans{t}$ is then defined as follows:
 
-\[\ltrans{t} \defeq \cuts\treplace{x \Leftarrow \Result} \mbox{ where } (\cuts; \sigma; x) \defeq \ltransaux{t}. \]
+\[\ltrans{t} \defeq \cuts \mbox{ where } (\cuts; \sigma; t') \defeq \ltransaux{t}. \]
 
 \section{Correctness}
 
